@@ -1,0 +1,9 @@
+README
+
+To update Gitlab:
+
+git add file file1 etc
+git commit -m "committing the files"
+git push
+
+
