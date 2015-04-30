@@ -1,73 +1,69 @@
-<html>
-<head>
-<title>ECE 331 TEMP LOGGER</title>
-</head>
-<body>
-<?php
-   // Copying in some PHP GD code with which to experiment.
-  Header( 'Content-type: image/gif');
-  $image = imagecreate(200,200);
-  $red = ImageColorAllocate($image,255,0,0);
-  $blue = ImageColorAllocate($image,0,0,255);
-  $white = ImageColorAllocate($image,255,255,255);
-  $grey = ImageColorAllocate($image,200,200,200);         
-															// create an initial grey rectangle for us to draw on
-  ImageFilledRectangle($image,0,0,200,200,$grey);
-  // Connect to the mysql server and select the database
-  $connect = mysql_connect('','root','');
-  mysql_select_db('graphing',$connect);
-  // find out the maximum number in our recordset
-  $sql = 'SELECT MAX(g_num) FROM sales';
-  $maxResult = mysql_query($sql,$connect);
-  $max = mysql_result($maxResult,0,0);
-  // get the recordset for London
-  $sql = "SELECT g_num FROM sales WHERE g_team='London' ORDER BY g_month";
-  $salesResult = mysql_query($sql,$connect);
-  // find out how many rows were returned, that is the number of 'columns'
-  $columns = mysql_num_rows($salesResult);
-  // how much to increment $x by ? 
-  $xincrement = bcdiv(200,$columns-1,0);
-  $x=0;
-  // $i will keep track of the row number
-  $i=0;
-  // lop around while we have rows of data
-  while($salesRow=mysql_fetch_array($salesResult)) {
-      // work out the y co-ordinate as discussed above
-      $y = bcmul(bcdiv($salesRow[0],$max,2),200,2);
-     // add the values into the $points array
-    $points[$i][0] = $x;
-    $points[$i][1] = $y;
-    // increment $x by $xincrement
-    $x+=$xincrement;
-    // increment $i
-    $i++;
-  }
-  // now we loop around through our $points array, while $i is
-  // less that $columns-1
-  for($i=0;$i<$columns-1;$i++) {
-    // We pass $points[$I][0] as the first x co-ord, 
-// and $points[$I][1] as the first y co-ord
-// $points[$I+1][0], $points[$I+1][1] will be the next
-// x,y co-ord set.
-ImageLine($image,$points[$i][0],$points[$i][1],$points[$i+1][0],$points[$i+1][1],$red);
-  }
-  // output the GIF to the browser and free up memory
-  ImageGIF($image);
-  ImageDestroy($image);
+<?php   
 
-?> 
+header('Content-type: image/png');
 
-	$temp_vals = array();
-	$dbhdle = new SQLite3('tempdata.db');
-	$dsdentries = $dbhdle->query('SELECT * FROM tempdata ORDER BY rowid DESC limit 1441');
-	while (($row_info = $dsdentries->fetchArray(SQLITE3_NUM)) != NULL) {
-	#	echo $row_info[0] . " " . $row_info[1] . " " . $row_info[2] . "\r\n";
-		$temp_vals[] = $row_info[2];
+$delta_t = 1;      # spacing (in minutes) between successive data points
+$hour_div = 60;
+$PIX_WID = 1450;
+$PIX_HGT = 590;
+$MAX_TEMP = 90;
+$MIN_TEMP = 40; 
+$SCL_PIX = 10;
+$tf = 0;
+$ti = 0;
+$Tf = 0;
+$Ti = 0;
+$line_count = 0;
+$col_count = 1;
+$temp_hgts = range($MIN_TEMP,$MAX_TEMP,5);
+$time_vals = range(1,23,1);
+
+$png_image = imagecreate($PIX_WID,$PIX_HGT);  # might #aneed to error check this
+$graph_color = imagecolorallocate($png_image,255,255,255);
+$line_color = imagecolorallocate($png_image, 255, 0, 0);
+$grid_color = imagecolorallocate($png_image,0,0,0);
+$box_color = imagecolorallocate($png_image,0,0,0);
+$first_time = "yes";
+
+$dbhdle = new SQLite3('datetimetemp.db');
+$dsdentries = $dbhdle->query('SELECT * FROM datetimetemp ORDER BY rowid DESC limit 1441');
+imagestring($png_image,7,$PIX_WID/2 - 115,20,'ECE 331 Temperature Logger', $line_color);
+
+while(($row_info = $dsdentries->fetchArray(SQLITE3_NUM)) != NULL) {   #t == x, T == y, so to speak
+	$tf=$ti+$delta_t; // Shifting in X axis
+	$Tf=$row_info[2]; 
+	if ($first_time=="no"){ // this is to prevent from starting $x1= and $y1=0
+		$Tfpix = ($Tf - $MIN_TEMP)*$SCL_PIX;
+		$Tipix = ($Ti - $MIN_TEMP)*$SCL_PIX;
+		imageline ($png_image,$ti, $Tipix,$tf,$Tfpix,$line_color); // Drawing the line between two points
+		if (($tf%60 == 0) ||($tf == 0)) {
+			imagedashedline($png_image,$tf ,0 ,$tf ,500 , $grid_color);
+			imagestring($png_image,5,$tf,$PIX_HGT - 100,"$col_count",$grid_color);
+			$col_count = $col_count + 1;
+		}
 	}
-	for($i = 0; $i < 1441; $i++) {
-		#echo "$temp_vals[$i]<br />\n";
+	$ti=$tf; # make final points of first line the initial points of the next line.
+	$Ti=$Tf;
+	$first_time="no"; // Now flag is set to allow the drawing
+}
+
+for ($i = 500; $i > 49; $i--) {
+	if ($i%50 == 0) {
+		imagestring($png_image,5,5,$i-10,"$temp_hgts[$line_count]",$grid_color);
+		$line_count = $line_count + 1;
+		imagedashedline($png_image,0 ,$i ,1450 ,$i , $grid_color);
 	}
+}
+
+date_default_timezone_set('America/New_York');
+imagestring($png_image,5,5,10,"deg F",$grid_color);
+imagestring($png_image,5,$PIX_WID/2 - 115, $PIX_HGT - 80,'Hours in the past', $grid_color);
+imagestring($png_image,8,5,$PIX_HGT - 50,"Today's Date is: " . date("F j, Y"), $grid_color);
+imagestring($png_image,8,5,$PIX_HGT - 25,"The Time is: " . date("H:i"),$grid_color);
+
+imagepng($png_image);
+imagedestroy($png_image);
+
 ?>
-</body>
-</html>
+
 
