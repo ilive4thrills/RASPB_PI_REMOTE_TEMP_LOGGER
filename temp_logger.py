@@ -37,18 +37,16 @@ if (ADC == None):    # abort the reading if the reading comes back "Null"
 	exit()
 T_F = ADC_to_T_F(ADC)
 
-datetimetemp = [datestr,timestr,T_F]
+datetimetemp = [datestr,timestr,T_F] #store the date, time, and temp information into a structure to pass to SQLite3
 
 db_conn = sqlite3.connect('/home/joseph/Desktop/temp_logger/datetimetemp.db') # create a database handle
 
 if ((db_conn == None) or (db_conn < 0)):
-	print "Unable to create db handle.",   #check database handle
-	sys.exit(0)
-
+	sys.exit("Unable to create db handle."),   #check database handle
+	
 db_cursor = db_conn.cursor()
 if ((db_cursor == None) or (db_cursor < 0)):     #create cursor to apply actions to database
-	print "Unable to create db cursor.",
-	sys.exit(0)
+	sys.exit("Unable to create db cursor.")
 
 db_cursor.execute('INSERT INTO datetimetemp VALUES (?,?,?)',datetimetemp) # insert new data entries into table (already created)
 db_conn.commit()     # after the changes have been made, make them permanent
