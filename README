@@ -1,9 +1,46 @@
-README
+Joseph Garcia
+ECE 331 Sheaff
+Project 2
+4/29/15
 
-To update Gitlab:
+Configuration information
 
-git add file file1 etc
-git commit -m "committing the files"
-git push
+To enable command line level communication with the i2c bus on the Raspberry Pi (using i2ctools commands such as i2cget and i2cdetect), the package i2c-tools was installed. Then, using raspi-config and going to the Advanced Options > I2C section, the options to enable the ARM i2c interface and the loading of the i2c kernel module at boot time were set to "yes." In Raspbian, notifying raspi-config that the i2c kernel module should be loaded at boot time is not sufficient to make the modules actually load, so the file /etc/modules was edited, with the lines "i2c-bcm2708" and "i2c-dev" added to the end of the file. Since the Pi on which the project code was written is running version 3.18.11+ of the linux kernel, the line "dtparam=i2c_arm=on" was added to the file /boot/config.txt as well so that the device tree parameters would be satisfied for the i2c interface. The user joseph was added to the i2c group as well so that i2c queries would not have to be run as the superuser.
+
+The cron job that queried the temperature sensor was a bash script (/home/joseph/Desktop/temp_logger/i2c_to_temp.sh) that executed "i2cget -y 1 0x41 0x006 w | /home/joseph/Desktop/temp_logger/temp_logger.py" every minute and updated the database /home/joseph/Desktop/temp_logger/datetimetemp.db accordingly.
+
+The lighttpd server was installed using "$ sudo aptitude install lighttpd" and was configured by modifying /etc/lighttpd/lighttpd.conf. A copy of the file can be seen below:
+
+server.modules = (
+     "mod_access",
+     "mod_alias",
+    "mod_compress",
+    "mod_redirect",
+#       "mod_rewrite",
+)
+
+server.document-root        = "/home/joseph/Desktop/temp_logger/"
+server.upload-dirs          = ( "/var/cache/lighttpd/uploads" )
+server.errorlog             = "/var/log/lighttpd/error.log"
+server.pid-file             = "/var/run/lighttpd.pid"
+server.username             = "www-data"
+server.groupname            = "www-data"
+server.port                 = 8080
 
 
+index-file.names            = ( "index.php", "index.html", "index.lighttpd.html" )
+url.access-deny             = ( "~", ".inc" )
+static-file.exclude-extensions = ( ".php", ".pl", ".fcgi" )
+
+compress.cache-dir          = "/var/cache/lighttpd/compress/"
+compress.filetype           = ( "application/javascript", "text/css", "text/html", "text    /plain" )
+
+# default listening port for IPv6 falls back to the IPv4 port
+include_shell "/usr/share/lighttpd/use-ipv6.pl " + server.port
+include_shell "/usr/share/lighttpd/create-mime.assign.pl"
+include_shell "/usr/share/lighttpd/include-conf-enabled.pl"
+
+The only lines that are different between this file and the unmodified "stock" one are "server.document-root = "/home/joseph/Desktop/temp_logger/"" and "server.port = 8080". The second change was purely logistical. It was done so that this Pi could still communicate via its http port even though other PIs were on its network. The first change allowed the lighttpd server to (by default) run out of the temp_logger directory, rather than /var/www. The directory permissions of /temp_logger were set to 755, ensuring that unprivileged users could not edit the directory files. It is important to note here that lighttpd by default is set to start up at boot time.
+
+
+The SQLite3 database that was used to store temperature and time data was created using sqlite3 datetimetemp.db, and the table datetimetemp which existed in the database was creating using the sqlite3 command line interface as well, rather than being created by the python script (which was purely meant to process i2c data and send it to the database). 
