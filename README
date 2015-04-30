@@ -7,7 +7,10 @@ Configuration information
 
 To enable command line level communication with the i2c bus on the Raspberry Pi (using i2ctools commands such as i2cget and i2cdetect), the package i2c-tools was installed. Then, using raspi-config and going to the Advanced Options > I2C section, the options to enable the ARM i2c interface and the loading of the i2c kernel module at boot time were set to "yes." In Raspbian, notifying raspi-config that the i2c kernel module should be loaded at boot time is not sufficient to make the modules actually load, so the file /etc/modules was edited, with the lines "i2c-bcm2708" and "i2c-dev" added to the end of the file. Since the Pi on which the project code was written is running version 3.18.11+ of the linux kernel, the line "dtparam=i2c_arm=on" was added to the file /boot/config.txt as well so that the device tree parameters would be satisfied for the i2c interface. The user joseph was added to the i2c group as well so that i2c queries would not have to be run as the superuser.
 
-The cron job that queried the temperature sensor was a bash script (/home/joseph/Desktop/temp_logger/i2c_to_temp.sh) that executed "i2cget -y 1 0x41 0x006 w | /home/joseph/Desktop/temp_logger/temp_logger.py" every minute and updated the database /home/joseph/Desktop/temp_logger/datetimetemp.db accordingly.
+The cron job that queried the temperature sensor was a bash script (/home/joseph/Desktop/temp_logger/i2c_to_py_temp.sh) that executed "i2cget -y 1 0x41 0x006 w | /home/joseph/Desktop/temp_logger/temp_logger.py" every minute and updated the database /home/joseph/Desktop/temp_logger/datetimetemp.db accordingly. A copy of the cronjob is below.
+
+# m h dom mon dow command
+  * *  *   *   *  /home/joseph/Desktop/temp_logger/i2c_to_py_temp.sh
 
 The lighttpd server was installed using "$ sudo aptitude install lighttpd" and was configured by modifying /etc/lighttpd/lighttpd.conf. A copy of the file can be seen below:
 
