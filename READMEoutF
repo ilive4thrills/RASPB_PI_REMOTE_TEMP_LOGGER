@@ -1,0 +1,612 @@
+%!PS-Adobe-3.0
+%%BoundingBox: 18 36 577 806
+%%Title: Enscript Output
+%%Creator: GNU Enscript 1.6.5.90
+%%CreationDate: Thu Apr 30 10:32:34 2015
+%%Orientation: Portrait
+%%Pages: (atend)
+%%DocumentMedia: A4 595 842 0 () ()
+%%DocumentNeededResources: (atend)
+%%EndComments
+%%BeginProlog
+%%BeginResource: procset Enscript-Prolog 1.6.5 90
+%
+% Procedures.
+%
+
+/_S {	% save current state
+  /_s save def
+} def
+/_R {	% restore from saved state
+  _s restore
+} def
+
+/S {	% showpage protecting gstate
+  gsave
+  showpage
+  grestore
+} bind def
+
+/MF {	% fontname newfontname -> -	make a new encoded font
+  /newfontname exch def
+  /fontname exch def
+
+  /fontdict fontname findfont def
+  /newfont fontdict maxlength dict def
+
+  fontdict {
+    exch
+    dup /FID eq {
+      % skip FID pair
+      pop pop
+    } {
+      % copy to the new font dictionary
+      exch newfont 3 1 roll put
+    } ifelse
+  } forall
+
+  newfont /FontName newfontname put
+
+  % insert only valid encoding vectors
+  encoding_vector length 256 eq {
+    newfont /Encoding encoding_vector put
+  } if
+
+  newfontname newfont definefont pop
+} def
+
+/MF_PS { % fontname newfontname -> -	make a new font preserving its enc
+  /newfontname exch def
+  /fontname exch def
+
+  /fontdict fontname findfont def
+  /newfont fontdict maxlength dict def
+
+  fontdict {
+    exch
+    dup /FID eq {
+      % skip FID pair
+      pop pop
+    } {
+      % copy to the new font dictionary
+      exch newfont 3 1 roll put
+    } ifelse
+  } forall
+
+  newfont /FontName newfontname put
+
+  newfontname newfont definefont pop
+} def
+
+/SF { % fontname width height -> -	set a new font
+  /height exch def
+  /width exch def
+
+  findfont
+  [width 0 0 height 0 0] makefont setfont
+} def
+
+/SUF { % fontname width height -> -	set a new user font
+  /height exch def
+  /width exch def
+
+  /F-gs-user-font MF
+  /F-gs-user-font width height SF
+} def
+
+/SUF_PS { % fontname width height -> -	set a new user font preserving its enc
+  /height exch def
+  /width exch def
+
+  /F-gs-user-font MF_PS
+  /F-gs-user-font width height SF
+} def
+
+/M {moveto} bind def
+/s {show} bind def
+
+/Box {	% x y w h -> -			define box path
+  /d_h exch def /d_w exch def /d_y exch def /d_x exch def
+  d_x d_y  moveto
+  d_w 0 rlineto
+  0 d_h rlineto
+  d_w neg 0 rlineto
+  closepath
+} def
+
+/bgs {	% x y height blskip gray str -> -	show string with bg color
+  /str exch def
+  /gray exch def
+  /blskip exch def
+  /height exch def
+  /y exch def
+  /x exch def
+
+  gsave
+    x y blskip sub str stringwidth pop height Box
+    gray setgray
+    fill
+  grestore
+  x y M str s
+} def
+
+/bgcs { % x y height blskip red green blue str -> -  show string with bg color
+  /str exch def
+  /blue exch def
+  /green exch def
+  /red exch def
+  /blskip exch def
+  /height exch def
+  /y exch def
+  /x exch def
+
+  gsave
+    x y blskip sub str stringwidth pop height Box
+    red green blue setrgbcolor
+    fill
+  grestore
+  x y M str s
+} def
+
+% Highlight bars.
+/highlight_bars {	% nlines lineheight output_y_margin gray -> -
+  gsave
+    setgray
+    /ymarg exch def
+    /lineheight exch def
+    /nlines exch def
+
+    % This 2 is just a magic number to sync highlight lines to text.
+    0 d_header_y ymarg sub 2 sub translate
+
+    /cw d_output_w cols div def
+    /nrows d_output_h ymarg 2 mul sub lineheight div cvi def
+
+    % for each column
+    0 1 cols 1 sub {
+      cw mul /xp exch def
+
+      % for each rows
+      0 1 nrows 1 sub {
+        /rn exch def
+        rn lineheight mul neg /yp exch def
+        rn nlines idiv 2 mod 0 eq {
+	  % Draw highlight bar.  4 is just a magic indentation.
+	  xp 4 add yp cw 8 sub lineheight neg Box fill
+	} if
+      } for
+    } for
+
+  grestore
+} def
+
+% Line highlight bar.
+/line_highlight {	% x y width height gray -> -
+  gsave
+    /gray exch def
+    Box gray setgray fill
+  grestore
+} def
+
+% Column separator lines.
+/column_lines {
+  gsave
+    .1 setlinewidth
+    0 d_footer_h translate
+    /cw d_output_w cols div def
+    1 1 cols 1 sub {
+      cw mul 0 moveto
+      0 d_output_h rlineto stroke
+    } for
+  grestore
+} def
+
+% Column borders.
+/column_borders {
+  gsave
+    .1 setlinewidth
+    0 d_footer_h moveto
+    0 d_output_h rlineto
+    d_output_w 0 rlineto
+    0 d_output_h neg rlineto
+    closepath stroke
+  grestore
+} def
+
+% Do the actual underlay drawing
+/draw_underlay {
+  ul_style 0 eq {
+    ul_str true charpath stroke
+  } {
+    ul_str show
+  } ifelse
+} def
+
+% Underlay
+/underlay {	% - -> -
+  gsave
+    0 d_page_h translate
+    d_page_h neg d_page_w atan rotate
+
+    ul_gray setgray
+    ul_font setfont
+    /dw d_page_h dup mul d_page_w dup mul add sqrt def
+    ul_str stringwidth pop dw exch sub 2 div ul_h_ptsize -2 div moveto
+    draw_underlay
+  grestore
+} def
+
+/user_underlay {	% - -> -
+  gsave
+    ul_x ul_y translate
+    ul_angle rotate
+    ul_gray setgray
+    ul_font setfont
+    0 0 ul_h_ptsize 2 div sub moveto
+    draw_underlay
+  grestore
+} def
+
+% Page prefeed
+/page_prefeed {		% bool -> -
+  statusdict /prefeed known {
+    statusdict exch /prefeed exch put
+  } {
+    pop
+  } ifelse
+} def
+
+% Wrapped line markers
+/wrapped_line_mark {	% x y charwith charheight type -> -
+  /type exch def
+  /h exch def
+  /w exch def
+  /y exch def
+  /x exch def
+
+  type 2 eq {
+    % Black boxes (like TeX does)
+    gsave
+      0 setlinewidth
+      x w 4 div add y M
+      0 h rlineto w 2 div 0 rlineto 0 h neg rlineto
+      closepath fill
+    grestore
+  } {
+    type 3 eq {
+      % Small arrows
+      gsave
+        .2 setlinewidth
+        x w 2 div add y h 2 div add M
+        w 4 div 0 rlineto
+        x w 4 div add y lineto stroke
+
+        x w 4 div add w 8 div add y h 4 div add M
+        x w 4 div add y lineto
+	w 4 div h 8 div rlineto stroke
+      grestore
+    } {
+      % do nothing
+    } ifelse
+  } ifelse
+} def
+
+% EPSF import.
+
+/BeginEPSF {
+  /b4_Inc_state save def    		% Save state for cleanup
+  /dict_count countdictstack def	% Count objects on dict stack
+  /op_count count 1 sub def		% Count objects on operand stack
+  userdict begin
+  /showpage { } def
+  0 setgray 0 setlinecap
+  1 setlinewidth 0 setlinejoin
+  10 setmiterlimit [ ] 0 setdash newpath
+  /languagelevel where {
+    pop languagelevel
+    1 ne {
+      false setstrokeadjust false setoverprint
+    } if
+  } if
+} bind def
+
+/EndEPSF {
+  count op_count sub { pos } repeat	% Clean up stacks
+  countdictstack dict_count sub { end } repeat
+  b4_Inc_state restore
+} bind def
+
+% Check PostScript language level.
+/languagelevel where {
+  pop /gs_languagelevel languagelevel def
+} {
+  /gs_languagelevel 1 def
+} ifelse
+%%EndResource
+%%BeginResource: procset Enscript-Encoding-88591 1.6.5 90
+/encoding_vector [
+/.notdef      	/.notdef      	/.notdef      	/.notdef      	
+/.notdef      	/.notdef      	/.notdef      	/.notdef      	
+/.notdef      	/.notdef      	/.notdef      	/.notdef      	
+/.notdef      	/.notdef      	/.notdef      	/.notdef      	
+/.notdef      	/.notdef      	/.notdef      	/.notdef      	
+/.notdef      	/.notdef      	/.notdef      	/.notdef      	
+/.notdef      	/.notdef      	/.notdef      	/.notdef      	
+/.notdef      	/.notdef      	/.notdef      	/.notdef      	
+/space        	/exclam       	/quotedbl     	/numbersign   	
+/dollar       	/percent      	/ampersand    	/quoteright   	
+/parenleft    	/parenright   	/asterisk     	/plus         	
+/comma        	/hyphen       	/period       	/slash        	
+/zero         	/one          	/two          	/three        	
+/four         	/five         	/six          	/seven        	
+/eight        	/nine         	/colon        	/semicolon    	
+/less         	/equal        	/greater      	/question     	
+/at           	/A            	/B            	/C            	
+/D            	/E            	/F            	/G            	
+/H            	/I            	/J            	/K            	
+/L            	/M            	/N            	/O            	
+/P            	/Q            	/R            	/S            	
+/T            	/U            	/V            	/W            	
+/X            	/Y            	/Z            	/bracketleft  	
+/backslash    	/bracketright 	/asciicircum  	/underscore   	
+/quoteleft    	/a            	/b            	/c            	
+/d            	/e            	/f            	/g            	
+/h            	/i            	/j            	/k            	
+/l            	/m            	/n            	/o            	
+/p            	/q            	/r            	/s            	
+/t            	/u            	/v            	/w            	
+/x            	/y            	/z            	/braceleft    	
+/bar          	/braceright   	/tilde        	/.notdef      	
+/.notdef      	/.notdef      	/.notdef      	/.notdef      	
+/.notdef      	/.notdef      	/.notdef      	/.notdef      	
+/.notdef      	/.notdef      	/.notdef      	/.notdef      	
+/.notdef      	/.notdef      	/.notdef      	/.notdef      	
+/.notdef      	/.notdef      	/.notdef      	/.notdef      	
+/.notdef      	/.notdef      	/.notdef      	/.notdef      	
+/.notdef      	/.notdef      	/.notdef      	/.notdef      	
+/.notdef      	/.notdef      	/.notdef      	/.notdef      	
+/space        	/exclamdown   	/cent         	/sterling     	
+/currency     	/yen          	/brokenbar    	/section      	
+/dieresis     	/copyright    	/ordfeminine  	/guillemotleft	
+/logicalnot   	/hyphen       	/registered   	/macron       	
+/degree       	/plusminus    	/twosuperior  	/threesuperior	
+/acute        	/mu           	/paragraph    	/bullet       	
+/cedilla      	/onesuperior  	/ordmasculine 	/guillemotright	
+/onequarter   	/onehalf      	/threequarters	/questiondown 	
+/Agrave       	/Aacute       	/Acircumflex  	/Atilde       	
+/Adieresis    	/Aring        	/AE           	/Ccedilla     	
+/Egrave       	/Eacute       	/Ecircumflex  	/Edieresis    	
+/Igrave       	/Iacute       	/Icircumflex  	/Idieresis    	
+/Eth          	/Ntilde       	/Ograve       	/Oacute       	
+/Ocircumflex  	/Otilde       	/Odieresis    	/multiply     	
+/Oslash       	/Ugrave       	/Uacute       	/Ucircumflex  	
+/Udieresis    	/Yacute       	/Thorn        	/germandbls   	
+/agrave       	/aacute       	/acircumflex  	/atilde       	
+/adieresis    	/aring        	/ae           	/ccedilla     	
+/egrave       	/eacute       	/ecircumflex  	/edieresis    	
+/igrave       	/iacute       	/icircumflex  	/idieresis    	
+/eth          	/ntilde       	/ograve       	/oacute       	
+/ocircumflex  	/otilde       	/odieresis    	/divide       	
+/oslash       	/ugrave       	/uacute       	/ucircumflex  	
+/udieresis    	/yacute       	/thorn        	/ydieresis    	
+] def
+%%EndResource
+%%EndProlog
+%%BeginSetup
+%%IncludeResource: font Courier-Bold
+%%IncludeResource: font Courier
+/HFpt_w 10 def
+/HFpt_h 10 def
+/Courier-Bold /HF-gs-font MF
+/HF /HF-gs-font findfont [HFpt_w 0 0 HFpt_h 0 0] makefont def
+/Courier /F-gs-font MF
+/F-gs-font 10 10 SF
+/#copies 1 def
+% Pagedevice definitions:
+gs_languagelevel 1 gt {
+  <<
+    /PageSize [595 842] 
+  >> setpagedevice
+} if
+%%BeginResource: procset Enscript-Header-simple 1.6.5 90
+
+/do_header {	% print default simple header
+  gsave
+    d_header_x d_header_y HFpt_h 3 div add translate
+
+    HF setfont
+    user_header_p {
+      5 0 moveto user_header_left_str show
+
+      d_header_w user_header_center_str stringwidth pop sub 2 div
+      0 moveto user_header_center_str show
+
+      d_header_w user_header_right_str stringwidth pop sub 5 sub
+      0 moveto user_header_right_str show
+    } {
+      5 0 moveto fname show
+      45 0 rmoveto fmodstr show
+      45 0 rmoveto pagenumstr show
+    } ifelse
+
+  grestore
+} def
+%%EndResource
+/d_page_w 559 def
+/d_page_h 770 def
+/d_header_x 0 def
+/d_header_y 755 def
+/d_header_w 559 def
+/d_header_h 15 def
+/d_footer_x 0 def
+/d_footer_y 0 def
+/d_footer_w 559 def
+/d_footer_h 0 def
+/d_output_w 559 def
+/d_output_h 755 def
+/cols 1 def
+%%EndSetup
+%%Page: (1) 1
+%%BeginPageSetup
+_S
+18 36 translate
+/pagenum 1 def
+/fname (README) def
+/fdir (.) def
+/ftail (README) def
+% User defined strings:
+/fmodstr (Thu Apr 30 10:29:00 2015) def
+/pagenumstr (1) def
+/user_header_p true def
+/user_header_left_str (Joseph Garcia) def
+/user_header_center_str () def
+/user_header_right_str () def
+/user_footer_p false def
+%%EndPageSetup
+do_header
+5 742 M
+(Joseph Garcia) s
+5 731 M
+(ECE 331 Sheaff) s
+5 720 M
+(Project 2) s
+5 709 M
+(4/29/15) s
+5 687 M
+(Configuration information) s
+5 665 M
+(To enable command line level communication with the i2c bus on the Raspberry Pi \(using i2ct) s
+5 654 M
+(ools commands such as i2cget and i2cdetect\), the package i2c-tools was installed. Then, usi) s
+5 643 M
+(ng raspi-config and going to the Advanced Options > I2C section, the options to enable the ) s
+5 632 M
+(ARM i2c interface and the loading of the i2c kernel module at boot time were set to "yes." ) s
+5 621 M
+(In Raspbian, notifying raspi-config that the i2c kernel module should be loaded at boot tim) s
+5 610 M
+(e is not sufficient to make the modules actually load, so the file /etc/modules was edited,) s
+5 599 M
+( with the lines "i2c-bcm2708" and "i2c-dev" added to the end of the file. Since the Pi on w) s
+5 588 M
+(hich the project code was written is running version 3.18.11+ of the linux kernel, the line) s
+5 577 M
+( "dtparam=i2c_arm=on" was added to the file /boot/config.txt as well so that the device tre) s
+5 566 M
+(e parameters would be satisfied for the i2c interface. The user joseph was added to the i2c) s
+5 555 M
+( group as well so that i2c queries would not have to be run as the superuser.) s
+5 533 M
+(The cron job that queried the temperature sensor was a bash script \(/home/joseph/Desktop/te) s
+5 522 M
+(mp_logger/i2c_to_py_temp.sh\) that executed "i2cget -y 1 0x41 0x006 w | /home/joseph/Desktop) s
+5 511 M
+(/temp_logger/temp_logger.py" every minute and updated the database /home/joseph/Desktop/tem) s
+5 500 M
+(p_logger/datetimetemp.db accordingly. A copy of the cronjob is below.) s
+5 478 M
+(# m h dom mon dow command) s
+5 467 M
+(  * *  *   *   *  /home/joseph/Desktop/temp_logger/i2c_to_py_temp.sh) s
+5 445 M
+(The lighttpd server was installed using "$ sudo aptitude install lighttpd" and was configur) s
+5 434 M
+(ed by modifying /etc/lighttpd/lighttpd.conf. A copy of the file can be seen below:) s
+5 412 M
+(server.modules = \() s
+5 401 M
+(     "mod_access",) s
+5 390 M
+(     "mod_alias",) s
+5 379 M
+(    "mod_compress",) s
+5 368 M
+(    "mod_redirect",) s
+5 357 M
+(#       "mod_rewrite",) s
+5 346 M
+(\)) s
+5 324 M
+(server.document-root        = "/home/joseph/Desktop/temp_logger/") s
+5 313 M
+(server.upload-dirs          = \( "/var/cache/lighttpd/uploads" \)) s
+5 302 M
+(server.errorlog             = "/var/log/lighttpd/error.log") s
+5 291 M
+(server.pid-file             = "/var/run/lighttpd.pid") s
+5 280 M
+(server.username             = "www-data") s
+5 269 M
+(server.groupname            = "www-data") s
+5 258 M
+(server.port                 = 8080) s
+5 225 M
+(index-file.names            = \( "index.php", "index.html", "index.lighttpd.html" \)) s
+5 214 M
+(url.access-deny             = \( "~", ".inc" \)) s
+5 203 M
+(static-file.exclude-extensions = \( ".php", ".pl", ".fcgi" \)) s
+5 181 M
+(compress.cache-dir          = "/var/cache/lighttpd/compress/") s
+5 170 M
+(compress.filetype           = \( "application/javascript", "text/css", "text/html", "text   ) s
+5 159 M
+( /plain" \)) s
+5 137 M
+(# default listening port for IPv6 falls back to the IPv4 port) s
+5 126 M
+(include_shell "/usr/share/lighttpd/use-ipv6.pl " + server.port) s
+5 115 M
+(include_shell "/usr/share/lighttpd/create-mime.assign.pl") s
+5 104 M
+(include_shell "/usr/share/lighttpd/include-conf-enabled.pl") s
+5 82 M
+(The only lines that are different between this file and the unmodified "stock" one are "ser) s
+5 71 M
+(ver.document-root = "/home/joseph/Desktop/temp_logger/"" and "server.port = 8080". The seco) s
+5 60 M
+(nd change was purely logistical. It was done so that this Pi could still communicate via it) s
+5 49 M
+(s http port even though other PIs were on its network. The first change allowed the lighttp) s
+5 38 M
+(d server to \(by default\) run out of the temp_logger directory, rather than /var/www. The di) s
+5 27 M
+(rectory permissions of /temp_logger were set to 755, ensuring that unprivileged users could) s
+5 16 M
+( not edit the directory files. It is important to note here that lighttpd by default is set) s
+5 5 M
+( to start up at boot time.) s
+_R
+S
+%%Page: (2) 2
+%%BeginPageSetup
+_S
+18 36 translate
+/pagenum 2 def
+/fname (README) def
+/fdir (.) def
+/ftail (README) def
+% User defined strings:
+/fmodstr (Thu Apr 30 10:29:00 2015) def
+/pagenumstr (2) def
+/user_header_p true def
+/user_header_left_str (Joseph Garcia) def
+/user_header_center_str () def
+/user_header_right_str () def
+/user_footer_p false def
+%%EndPageSetup
+do_header
+5 720 M
+(The SQLite3 database that was used to store temperature and time data was created using sql) s
+5 709 M
+(ite3 datetimetemp.db, and the table datetimetemp which existed in the database was creating) s
+5 698 M
+( using the sqlite3 command line interface as well, rather than being created by the python ) s
+5 687 M
+(script \(which was purely meant to process i2c data and send it to the database\). ) s
+_R
+S
+%%Trailer
+%%Pages: 2
+%%DocumentNeededResources: font Courier-Bold Courier 
+%%EOF
